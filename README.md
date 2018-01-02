@@ -1,0 +1,2 @@
+# ServerlessFrameworkSample
+サーバレスフレームワークのサンプルとして、EC2インスタンスのAMIバックアップを作りました。
