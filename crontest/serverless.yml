@@ -40,7 +40,17 @@ provider:
 #          - - "arn:aws:s3:::"
 #            - "Ref" : "ServerlessDeploymentBucket"
 #            - "/*"
-
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "ec2:DescribeSnapshots"
+        - "ec2:DeregisterImage"
+        - "ec2:CreateImage"
+        - "ec2:DescribeInstances"
+        - "ec2:DescribeImages"
+        - "ec2:DeleteSnapshot"
+      Resource:
+        - "*"
 # you can define service wide environment variables here
 #  environment:
 #    variable1: value1
@@ -57,6 +67,8 @@ provider:
 functions:
   hello:
     handler: handler.hello
+    events:
+      - schedule: rate(5 minutes)
     alarms: # merged with function alarms
       - name: helloAlerm # creates new alarm or overwrites some properties of the alarm (with the same name) from definitions
         description: hello_alerm_description
