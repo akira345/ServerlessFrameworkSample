@@ -73,7 +73,7 @@ functions:
       - name: helloAlerm # creates new alarm or overwrites some properties of the alarm (with the same name) from definitions
         description: hello_alerm_description
         namespace: 'AWS/Lambda'
-        metric: errors # define custom metrics here
+        metric: Errors # define custom metrics here
         threshold: 1
         statistic: Sum
         period: 60
