@@ -23,7 +23,7 @@ provider:
 
 # you can overwrite defaults here
 #  stage: dev
-#  region: us-east-1
+  region: us-east-1
 
 # you can add statements to the Lambda function's IAM Role here
 #  iamRoleStatements:
@@ -57,7 +57,16 @@ provider:
 functions:
   hello:
     handler: handler.hello
-
+    alarms: # merged with function alarms
+      - name: helloAlerm # creates new alarm or overwrites some properties of the alarm (with the same name) from definitions
+        description: hello_alerm_description
+        namespace: 'AWS/Lambda'
+        metric: errors # define custom metrics here
+        threshold: 1
+        statistic: Sum
+        period: 60
+        evaluationPeriods: 1
+        comparisonOperator: GreaterThanOrEqualToThreshold # >=
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details
@@ -70,7 +79,6 @@ functions:
 #      - sns: greeter-topic
 #      - stream: arn:aws:dynamodb:region:XXXXXX:table/foo/stream/1970-01-01T00:00:00.000
 #      - alexaSkill
-#      - alexaSmartHome: amzn1.ask.skill.xx-xx-xx-xx
 #      - iot:
 #          sql: "SELECT * FROM 'some_topic'"
 #      - cloudwatchEvent:
@@ -83,9 +91,6 @@ functions:
 #              state:
 #                - pending
 #      - cloudwatchLog: '/aws/lambda/hello'
-#      - cognitoUserPool:
-#          pool: MyUserPool
-#          trigger: PreSignUp
 
 #    Define function environment variables here
 #    environment:
@@ -102,3 +107,28 @@ functions:
 #     NewOutput:
 #       Description: "Description for the output"
 #       Value: "Some output value"
+custom:
+  alerts:
+    stages: # Optionally - select which stages to deploy alarms to
+      - production
+      - staging
+
+    dashboards: true
+
+    topics:
+      ok:
+        topic: ${self:service}-${opt:stage}-alerts-ok
+        notifications:
+          - protocol: email
+            endpoint: me@example.com
+      alarm:
+        topic: ${self:service}-${opt:stage}-alerts-alarm
+        notifications:
+          - protocol: email
+            endpoint: me@example.com
+
+
+plugins:
+  - serverless-plugin-aws-alerts
+
+
