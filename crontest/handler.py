@@ -63,7 +63,8 @@ def check_delete_images(ec2, instance_id):
         ],
     )
     image_list = ret["Images"]
-    sort_list = sorted(image_list, key=itemgetter("Name"))
+    # AMIを取得し、降順（作成日が新しいもの順）にソートした後、指定した世代数+1以降を取り出し削除する
+    sort_list = sorted(image_list, key=itemgetter("Name"), reverse=True)
     ##################################
     logger.info("describe_images:{}".format((sort_list)))
     ##################################
