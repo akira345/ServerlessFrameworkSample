@@ -65,7 +65,7 @@ def check_delete_images(ec2, instance_id):
     image_list = ret["Images"]
     sort_list = sorted(image_list, key=itemgetter("Name"))
     ##################################
-    logger.info("describe_images".format((sort_list)))
+    logger.info("describe_images:{}".format((sort_list)))
     ##################################
     delete_images = sort_list[backup_config["generation"]:len(sort_list)]
     ##################################
