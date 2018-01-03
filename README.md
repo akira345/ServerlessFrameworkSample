@@ -1,7 +1,7 @@
 # ServerlessFrameworkSample
 サーバレスフレームワークのサンプルとして、EC2インスタンスのAMIバックアップを作りました。
 
-# 目的
+## 目的
 - 今話題のServerlessFrameworkについて、手を動かしながら動きを見て動作を学ぶ。
     - ついでにCloudFormationについても。
 - lambdaの動きを知る。
@@ -19,15 +19,15 @@
 ```
 npm install serverless-plugin-aws-alerts serverless -g
 ```
-## 開発環境
-    - OS:Windows 10 Pro build 1709
-    - IDE:Pycharm COMMUNITY 2017.03
-    - Python: 3.6.2
-    - npm: 3.10.10
-    - serverless: 1.25.0
-        - serverless-plugin-aws-alerts: 1.2.4
-    - aws cli: aws-cli/1.14.16 Python/2.7.9 Windows/8 botocore/1.8.20
 
+## 開発環境
+- OS:Windows 10 Pro build 1709
+- IDE:Pycharm COMMUNITY 2017.03
+- Python: 3.6.2
+- npm: 3.10.10
+- serverless: 1.25.0
+    - serverless-plugin-aws-alerts: 1.2.4
+- aws cli: aws-cli/1.14.16 Python/2.7.9 Windows/8 botocore/1.8.20
 
 ## 初期プロジェクト構築
 - 今回はServerlessFrameworkがどういうものなのかを勉強するために、初期プロジェクトを構築し動きを見ながら開発しました。
