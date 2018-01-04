@@ -153,7 +153,7 @@ npm install serverless-plugin-aws-alerts serverless -g
 ---
 - 学んだこと
     - ServerlessFrameworkについて
-        - ServerlessFrameworkはlambda開発で使用するフレームワークではなく、CloudFormationのラッパツールである。
+        - ServerlessFrameworkはlambda開発で使用するフレームワークではなく、~~CloudFormationのラッパツールである。~~ 誤り。AWS以外にも対応しているのでCloudFormationのラッパツールではない。AWSの場合はCloudFormationを使って構築されているだけ。
         - serverless.ymlに設定することで、CloudFormationが作成され、AWSへデプロイされる。
         - CloudFormationでデプロイされるので、リソース一式削除することができる。
     - lambda(python)について
