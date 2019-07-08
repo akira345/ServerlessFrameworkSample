@@ -11,28 +11,28 @@
             - CloudWatch Logs
         - IAMロール
         - SNSによる通知
-- lamdba関数の作成を通してpython3、boto3の使用法を学ぶ。
+- lamdba関数のRubyサポートをテストする。
 - 今後ServerlessFrameworkを使用するにあたってのスケルトンプロジェクトを目指す。
 ---
 ## ServerlessFrameworkインストール方法
-- 使用しているserverless-plugin-aws-alertsプラグインがServerlessFrameworkの最新バージョンに対応していないので、以下のようにしてまとめて入れました。
+- 使用しているserverless-plugin-aws-alertsプラグインが何故かこのバージョンのServerlessで読み込めなかったので、グローバルではなくローカルに入れます。
 ```
-npm install serverless-plugin-aws-alerts serverless -g
+npm install serverless -g
+npm install serverless-plugin-aws-alerts
 ```
 
 ## 開発環境
-- OS:Windows 10 Pro build 1709
-- IDE:Pycharm COMMUNITY 2017.03
-- Python: 3.6.2
-- npm: 3.10.10
-- serverless: 1.25.0
+- OS:Windows 10 Pro build 17763
+- IDE:VSCode
+- Python: 3.7.3
+- npm: 6.9.0
+- serverless: 1.46.1
     - serverless-plugin-aws-alerts: 1.2.4
-- aws cli: aws-cli/1.14.16 Python/2.7.9 Windows/8 botocore/1.8.20
+- aws cli: aws-cli/1.16.193 Python/3.7.3 Windows/10 botocore/1.12.183
 
 ## 初期プロジェクト構築
 - 今回はServerlessFrameworkがどういうものなのかを勉強するために、初期プロジェクトを構築し動きを見ながら開発しました。
-また、Python3の勉強もかねて、lambdaの開発はpython3としました。
-ベースがない状態で作成するのはハードルが高いので、以前作成した[これ](https://gist.github.com/akira345/4aa57e6ec062f03a0b63)
+また、LambdaがRuby対応したので、以前作成した[これ](https://gist.github.com/akira345/4aa57e6ec062f03a0b63)
 をアレンジしました。
 1. 環境設定
     1. aws cli を[ここ](https://docs.aws.amazon.com/ja_jp/cli/latest/userguide/awscli-install-windows.html)よりインストール。
@@ -45,17 +45,17 @@ npm install serverless-plugin-aws-alerts serverless -g
 1. 初期プロジェクト構築
     - 今回はCronの代替としてCloudWatch Eventを試したいので、安直にcrontestとしました。
     ```
-    sls create -t aws-python3 -p crontest
+    sls create -t ruby -p crontest
     ```
 1. lambda実行時エラーになっても気づかないと困るので、最初にCloudWatch Logsによるlamdba関数のエラー通知を設定します。
 ここでは[serverless-plugin-aws-alerts](https://github.com/ACloudGuru/serverless-plugin-aws-alerts)
 を使用します。
 (後で分かったのですが、[ここ](https://dev.classmethod.jp/cloud/aws/lambda-ec2instance-change-serverless/)にあるように、プラグインを使用せず直接指定する方法があるようです。)  
 この辺りは改良の余地がありそうです。  
-今回バージニアリージョン上で作ったのでリージョン指定もしています。
+今回東京リージョン上で作ったのでリージョン指定もしています。
     ```
     provider:
-    region: us-east-1 # バージニアリージョン
+    region: ap-northeast-1 # 東京リージョン
     functions:
     hello: # ラムダ関数名
         alarms: # CloudWatch Logs アラーム設定
@@ -96,16 +96,15 @@ npm install serverless-plugin-aws-alerts serverless -g
 1. ラムダ関数を実装します。  
 ローカル実行機能があるようですが、良く分からなかったので、開発時は単体スクリプトとして動作するものを作成し、それを持っていきました。
 1. デプロイ
-    - AWSへデプロイします。何故かステージングでデプロイすると
+    - Gemの自動パッキングはしてくれないようなので、手動でやります。
     ```
-    Serverless: Warning: Not deploying alerts on stage stage
+    bundle install --path vendor/bundle
     ```
-    となってCloudWatchアラートが作成されなかったので、
-明示的にproduction指定しています。
+    - AWSへデプロイします。
     ```
-    sls deploy -s productions -v
+    sls deploy -s staging -v
     ```
-    なお、変更して再デプロイしても更新されないことがあったので、その場合は、
+    なお、変更して再デプロイしても更新されない場合は、
     ```
     sls remove -s productions -v
     ```
@@ -153,97 +152,15 @@ npm install serverless-plugin-aws-alerts serverless -g
 ---
 - 学んだこと
     - ServerlessFrameworkについて
-        - ServerlessFrameworkはlambda開発で使用するフレームワークではなく、~~CloudFormationのラッパツールである。~~ 誤り。AWS以外にも対応しているのでCloudFormationのラッパツールではない。AWSの場合はCloudFormationを使って構築されているだけ。
-        - serverless.ymlに設定することで、CloudFormationが作成され、AWSへデプロイされる。
-        - CloudFormationでデプロイされるので、リソース一式削除することができる。
-    - lambda(python)について
-        - 関数内の標準出力、ログ出力はCloudWatch Logsへ出力される。
+        - Rubyへの対応も問題なさそう。ただしGem回りとタイムゾーンは要注意。
+    - lambda(Ruby)について
+        - 関数内の標準出力、ログ出力はCloudWatch Logsへ出力される。これはPythonと同じ。
         - 定時実行したい場合は、CloudWatch Eventを使用し、lambda関数を呼び出す。
         - CloudWatch Logsは指定した文字列、エラー状況などをメトリックとしSNSトピックへ通知することができる。
-        - ログの出力は以下のようにする。
-            ```
-            import logging
-            logger = logging.getLogger()
-            logger.setLevel(logging.INFO)
-            def hoge():
-              logger.info("InfoLog")
-              foo = "var"
-              logger.info("Valiable:{}".format(foo))
-            ```
-        - Python Tips
-            - 文字列を小文字にする。
-                ```
-                foo = "Abcde"
-                print (foo.lower()) # abcde
-                ```
-            - List型に格納されているDictionaly型の特定キーで降順にソートする。
-                ```
-                from operator import itemgetter
-                image_list = ret["Images"]
-                sort_list = sorted(image_list, key=itemgetter("Name"), reverse=True)
-                ```
-            - if文で and/orは`&&、||`ではなく、`and/or`
-            - nullは`None`で、比較する場合は、`is None`もしくは`is not None`であり、`!=None`とかしてはいけない(らしい)。ついでに`and/or`は論理値を返すとは[限らないらしい](https://qiita.com/keisuke-nakata/items/e0598b2c13807f102469)
-            - Pythonの`True/False`は実は`1/0`である。なので、`True+1`とか`False+1`ができる。[参考](http://programming-study.com/technology/python-ifnone/)
-            - List型でキーがない場合エラーになるので存在チェックをしないといけない。
-            ```
-            for device in image["BlockDeviceMappings"]:
-                if "VirtualName" in device and device["VirtualName"].startswith("ephemeral"):
-            ```
-        - boto3について
-            - Pagenaters
-                - リソース取得の際、全部のリソースを返さず、一部だけ返すメソッドがある。
-                その際、Makerとかセットして取得する必要があるが、それをラップし、イテレータとして使えるようにしたもの。（という理解）
-                SDK for Rubyでいうeach_pageと同様（という理解）
-                でも、結果セットにMakerがあったりするので、これで全件取得できるのだろうか確信が持てていない・・[参考](https://boto3.readthedocs.io/en/latest/guide/paginators.html)
-                    ```
-                    paginator = ec2.get_paginator('describe_instances')
-                    page_iterator = paginator.paginate
-                    for page in page_iterator:
-                        # Some Prosecc
-                    ```
-            - エラーコードについて
-                メソッドの実行エラーは`ClientError`で取得可能ですが、**ErrorCodeにコードが入っているとは限らない。**
-                ```
-                from botocore.exceptions import ClientError
-                try:
-                    ec2.deregister_image(
-                        ImageId = image["ImageId"]
-                    )
-                except ClientError as e:
-                    if e.response["Error"]["Code"] == 'InvalidAMIID.Unavailable':
-                        # 偽物イメージをつかまされることがあるので、無視する
-                        logger.info("にせもの")
-                        continue
-                    else:
-                        raise
-                ```
-                ```
-                s3 = boto3.resource('s3')
-                bucket = s3.Bucket(bucket_name)
-                try:
-                    bucket.Object(log_file_name).load()
-                except ClientError as e:
-                    print(e.response)
-                    if e.response["Error"]["Code"] == "404":
-                        # 存在しないのは何もしない
-                        pass
-                    else:
-                        raise
-                ```
-            
         - lambda内タイムゾーンについて
             - lambda内部の時刻はUTCです。時刻取得の際はハンドラ関数内で取得しないと[時刻がおかしくなる](https://qiita.com/yutaro1985/items/a24b572624281ebaa0dd)らしい。
-                - pythonでutc->jst変換
+                - Rubyでutc->jst変換(要ActiveSupport)
                     ```
-                    from datetime import datetime, timedelta, timezone
-                    jst = timezone(timedelta(hours=+9), 'JST')
-                    str_jst_time = datetime.strftime(datetime.now(jst), "%Y%m%d%H%M")
+                    Time.now.in_time_zone('Japan')
                     ```
             - 他にも[環境変数にセット](https://qiita.com/nullian/items/39ecf1f6d0194b72e8e6)する事でタイムゾーンを変更することができるようです。
-    - その他
-        - SNSのメール送信先などは環境変数へセットするほうがいい。
-        - Prod/Devの切り替えができるようにファイルを分離したほうがいい。
-        - 複数のラムダ関数をデプロイする際に今のままだと共通のIAMロールやCloudWatchEventになるので分離方法を探す。
-        - プロジェクトのディレクトリ構成についてベストプラクティスがないか調べてみる。
-        - 複数のラムダ関数をSNSで連携やCloudWatchEventで何かしらのトリガをベースに呼び出すとかやってみる。[ここ](https://dev.classmethod.jp/cloud/aws/ami-and-snapshot-delete/)とか手軽そう。
